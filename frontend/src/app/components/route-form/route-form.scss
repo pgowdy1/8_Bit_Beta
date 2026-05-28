@@ -1,0 +1,153 @@
+:host {
+  display: block;
+  height: 100%;
+  background: var(--nes-dark-blue);
+  color: var(--nes-white);
+  overflow-y: auto;
+  padding: 16px;
+  border-right: 4px solid var(--nes-black);
+}
+
+.route-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  h2 {
+    color: var(--nes-yellow);
+    text-align: center;
+    margin: 0 0 8px 0;
+  }
+}
+
+.route-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &--row {
+    flex-direction: row;
+    gap: 12px;
+
+    > div {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+}
+
+.route-form__pitches-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+
+  h3 {
+    margin: 0;
+  }
+}
+
+.route-form__add {
+  font-size: 8px;
+  padding: 6px 8px;
+}
+
+.route-form__pitches {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.route-form__empty {
+  font-size: 9px;
+  color: var(--nes-light-gray);
+  text-align: center;
+  padding: 16px;
+  border: 3px dashed var(--nes-mid-gray);
+}
+
+.pitch {
+  border: 3px solid var(--nes-white);
+  background: var(--nes-black);
+}
+
+.pitch__header {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    background: var(--nes-dark-gray);
+  }
+}
+
+.pitch__num {
+  background: var(--nes-yellow);
+  color: var(--nes-black);
+  padding: 2px 6px;
+  font-size: 9px;
+}
+
+.pitch__grade {
+  font-size: 10px;
+  color: var(--nes-white);
+}
+
+.pitch__len {
+  font-size: 8px;
+  color: var(--nes-light-gray);
+}
+
+.pitch__remove {
+  font-size: 8px;
+  padding: 4px 6px;
+  background: var(--nes-dark-red);
+  box-shadow: inset -3px -3px 0 0 #881400;
+}
+
+.pitch__body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 3px solid var(--nes-white);
+}
+
+.pitch__moves-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9px;
+  color: var(--nes-light-gray);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.pitch__add-move {
+  font-size: 8px;
+  padding: 4px 6px;
+}
+
+.move {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 6px;
+  align-items: stretch;
+
+  input {
+    font-size: 9px;
+  }
+}
+
+.move__remove {
+  background: var(--nes-dark-red);
+  box-shadow: inset -3px -3px 0 0 #881400;
+  font-size: 8px;
+  padding: 4px 6px;
+}

@@ -1,0 +1,22 @@
+<section class="topo-canvas">
+  <header class="topo-canvas__header">
+    <h2>{{ store.route().featureName || 'Untitled Feature' }}</h2>
+    <div class="topo-canvas__actions">
+      <button type="button" (click)="replay()">REPLAY</button>
+      <button type="button" (click)="exportPng()">EXPORT PNG</button>
+    </div>
+  </header>
+
+  <div class="topo-canvas__viewport">
+    <canvas
+      #canvasEl
+      (click)="onCanvasClick($event)"
+      (mousemove)="onCanvasMouseMove($event)"
+    ></canvas>
+  </div>
+
+  <footer class="topo-canvas__hint">
+    <span>CLICK A PITCH FOR DETAILS</span>
+    <span>{{ store.pitchCount() }} PITCHES &middot; {{ store.totalLengthFt() }} FT</span>
+  </footer>
+</section>
