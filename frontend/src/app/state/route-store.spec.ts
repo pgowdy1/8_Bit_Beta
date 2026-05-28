@@ -51,6 +51,17 @@ describe('RouteStore', () => {
     );
   });
 
+  it('seeds with the default granite rock type', () => {
+    expect(store.route().rockType).toBe('granite');
+  });
+
+  it('setRockType updates the route', () => {
+    store.setRockType('basalt');
+    expect(store.route().rockType).toBe('basalt');
+    store.setRockType('sandstone');
+    expect(store.route().rockType).toBe('sandstone');
+  });
+
   it('manages moves on a pitch', () => {
     store.addMove(0, { label: 'Test move' });
     expect(store.route().pitches[0].moves?.length).toBeGreaterThan(0);

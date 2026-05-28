@@ -12,7 +12,7 @@ export function hitTest(
 ): number | null {
   if (route.pitches.length === 0) return null;
 
-  const logicalHeight = computeLogicalHeight(route.pitches.length);
+  const logicalHeight = computeLogicalHeight(route);
   const logicalX = (devicePxX / canvasWidthDevicePx) * LOGICAL_WIDTH;
   const logicalY = (devicePxY / canvasHeightDevicePx) * logicalHeight;
 

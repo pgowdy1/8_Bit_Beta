@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouteStore } from '../../state/route-store';
-import { Move } from '../../models/route.model';
+import { Move, ROCK_TYPES, RockType } from '../../models/route.model';
 
 @Component({
   selector: 'app-route-form',
@@ -11,6 +11,7 @@ import { Move } from '../../models/route.model';
 export class RouteForm {
   protected readonly store = inject(RouteStore);
   protected readonly expandedPitch = signal<number | null>(0);
+  protected readonly rockTypes = ROCK_TYPES;
 
   onRouteNameInput(value: string): void {
     this.store.setRouteName(value);
@@ -18,6 +19,10 @@ export class RouteForm {
 
   onFeatureNameInput(value: string): void {
     this.store.setFeatureName(value);
+  }
+
+  onRockTypeChange(value: string): void {
+    this.store.setRockType(value as RockType);
   }
 
   onPitchFieldInput(index: number, field: 'grade' | 'description', value: string): void {

@@ -2,27 +2,32 @@ import { hitTest } from './hit-detection';
 import { computeLogicalHeight, computeSegments, LOGICAL_WIDTH } from './layout';
 import { Route } from '../models/route.model';
 
-function makeRoute(pitchCount: number): Route {
+function makeRoute(lengths: number[]): Route {
   return {
     name: 'r',
     featureName: 'f',
-    pitches: Array.from({ length: pitchCount }, () => ({
+    rockType: 'granite',
+    pitches: lengths.map((lengthFt) => ({
       grade: '5.10',
-      lengthFt: 100,
+      lengthFt,
       description: '',
     })),
   };
 }
 
+function uniformRoute(pitchCount: number): Route {
+  return makeRoute(Array.from({ length: pitchCount }, () => 100));
+}
+
 describe('hitTest', () => {
   it('returns null for an empty route', () => {
-    expect(hitTest(makeRoute(0), 100, 100, 50, 50)).toBeNull();
+    expect(hitTest(makeRoute([]), 100, 100, 50, 50)).toBeNull();
   });
 
   it('hits an anchor when clicked directly on it', () => {
-    const route = makeRoute(3);
+    const route = uniformRoute(3);
     const segs = computeSegments(route);
-    const logicalHeight = computeLogicalHeight(3);
+    const logicalHeight = computeLogicalHeight(route);
     const canvasW = LOGICAL_WIDTH * 4;
     const canvasH = logicalHeight * 4;
 
@@ -34,18 +39,17 @@ describe('hitTest', () => {
   });
 
   it('returns null when click is far from any pitch', () => {
-    const route = makeRoute(3);
+    const route = uniformRoute(3);
     expect(hitTest(route, 1000, 1000, 5, 5)).toBeNull();
   });
 
   it('disambiguates between adjacent pitches by proximity', () => {
-    const route = makeRoute(5);
+    const route = uniformRoute(5);
     const segs = computeSegments(route);
-    const logicalHeight = computeLogicalHeight(5);
+    const logicalHeight = computeLogicalHeight(route);
     const canvasW = LOGICAL_WIDTH * 4;
     const canvasH = logicalHeight * 4;
 
-    // Click on midpoint of pitch 2's segment
     const mid = {
       x: (segs[2].bottom.x + segs[2].top.x) / 2,
       y: (segs[2].bottom.y + segs[2].top.y) / 2,
@@ -54,5 +58,23 @@ describe('hitTest', () => {
     const py = (mid.y / logicalHeight) * canvasH;
 
     expect(hitTest(route, canvasW, canvasH, px, py)).toBe(2);
+  });
+
+  it('handles variable-length pitches correctly', () => {
+    const route = makeRoute([50, 400, 100]);
+    const segs = computeSegments(route);
+    const logicalHeight = computeLogicalHeight(route);
+    const canvasW = LOGICAL_WIDTH * 4;
+    const canvasH = logicalHeight * 4;
+
+    // Click mid-segment of the long middle pitch
+    const mid = {
+      x: (segs[1].bottom.x + segs[1].top.x) / 2,
+      y: (segs[1].bottom.y + segs[1].top.y) / 2,
+    };
+    const px = (mid.x / LOGICAL_WIDTH) * canvasW;
+    const py = (mid.y / logicalHeight) * canvasH;
+
+    expect(hitTest(route, canvasW, canvasH, px, py)).toBe(1);
   });
 });
