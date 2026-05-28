@@ -1,14 +1,14 @@
-import { Route } from '../models/route.model';
-import { NES, SCENE_PALETTES } from './nes-palette';
+import { Route, RockType } from '../models/route.model';
+import { NES, ROCK_PALETTES, RockPalette, SCENE_PALETTES } from './nes-palette';
 import {
   GROUND_HEIGHT,
   LOGICAL_WIDTH,
-  PITCH_HEIGHT,
   SUMMIT_HEIGHT,
   WALL_LEFT,
   WALL_RIGHT,
   computeLogicalHeight,
   computeSegments,
+  wallHeight,
 } from './layout';
 
 export interface RenderProgress {
@@ -29,7 +29,7 @@ export function renderScene(
   route: Route,
   progress: RenderProgress
 ): void {
-  const height = computeLogicalHeight(route.pitches.length);
+  const height = computeLogicalHeight(route);
 
   drawSky(ctx, height);
   drawGround(ctx, height);
@@ -65,14 +65,15 @@ function drawGround(ctx: CanvasRenderingContext2D, height: number): void {
 }
 
 function drawWall(ctx: CanvasRenderingContext2D, route: Route, height: number): void {
-  const wallTopY = wallTopYFor(route);
+  const wallTopY = wallTopYFor(route, height);
   const wallBottomY = height - GROUND_HEIGHT;
+  const palette = ROCK_PALETTES[route.rockType] ?? ROCK_PALETTES.granite;
 
   // Base wall fill
-  ctx.fillStyle = SCENE_PALETTES.wall[1];
+  ctx.fillStyle = palette.base;
   ctx.fillRect(WALL_LEFT, wallTopY, WALL_RIGHT - WALL_LEFT, wallBottomY - wallTopY);
 
-  // Edge irregularity: notches on left and right every 8 rows
+  // Edge irregularity: notches on left and right (carved back to sky)
   ctx.fillStyle = SCENE_PALETTES.sky[0];
   for (let y = wallTopY + 6; y < wallBottomY; y += 14) {
     const leftBite = ((y / 14) | 0) % 2 === 0 ? 2 : 4;
@@ -81,39 +82,223 @@ function drawWall(ctx: CanvasRenderingContext2D, route: Route, height: number): 
     ctx.fillRect(WALL_RIGHT - rightBite, y + 6, rightBite, 4);
   }
 
-  // Rock face dither: alternating dark/light pixels for texture
+  paintRockTexture(ctx, route.rockType, palette, wallTopY, wallBottomY);
+
+  // Summit cap: highlight band along the top
+  ctx.fillStyle = palette.midtone;
+  ctx.fillRect(WALL_LEFT + 4, wallTopY, WALL_RIGHT - WALL_LEFT - 8, 2);
+  ctx.fillStyle = palette.highlight;
+  ctx.fillRect(WALL_LEFT + 16, wallTopY + 2, WALL_RIGHT - WALL_LEFT - 32, 1);
+}
+
+function wallTopYFor(route: Route, height: number): number {
+  return height - GROUND_HEIGHT - wallHeight(route) - SUMMIT_HEIGHT;
+}
+
+function paintRockTexture(
+  ctx: CanvasRenderingContext2D,
+  rockType: RockType,
+  palette: RockPalette,
+  wallTopY: number,
+  wallBottomY: number
+): void {
+  switch (rockType) {
+    case 'limestone': return paintLimestone(ctx, palette, wallTopY, wallBottomY);
+    case 'basalt':    return paintBasalt(ctx, palette, wallTopY, wallBottomY);
+    case 'sandstone': return paintSandstone(ctx, palette, wallTopY, wallBottomY);
+    case 'granite':
+    default:          return paintGranite(ctx, palette, wallTopY, wallBottomY);
+  }
+}
+
+// Granite: speckled crystals + occasional bright crystal clusters + thin diagonal cracks.
+function paintGranite(
+  ctx: CanvasRenderingContext2D,
+  palette: RockPalette,
+  wallTopY: number,
+  wallBottomY: number
+): void {
+  const xMin = WALL_LEFT + 4;
+  const xMax = WALL_RIGHT - 4;
+
+  // Dense pepper of shadow + highlight pixels
   for (let y = wallTopY; y < wallBottomY; y += 2) {
-    for (let x = WALL_LEFT + 6; x < WALL_RIGHT - 6; x += 6) {
-      const seed = (x * 13 + y * 7) % 11;
-      if (seed < 3) {
-        ctx.fillStyle = SCENE_PALETTES.wall[0];
-        ctx.fillRect(x, y, 2, 2);
-      } else if (seed < 5) {
-        ctx.fillStyle = SCENE_PALETTES.wall[2];
-        ctx.fillRect(x + 2, y, 2, 2);
+    for (let x = xMin; x < xMax; x += 2) {
+      const seed = (x * 17 + y * 31) % 23;
+      if (seed < 4) {
+        ctx.fillStyle = palette.shadow;
+        ctx.fillRect(x, y, 1, 1);
+      } else if (seed < 7) {
+        ctx.fillStyle = palette.highlight;
+        ctx.fillRect(x, y, 1, 1);
+      } else if (seed < 10) {
+        ctx.fillStyle = palette.midtone;
+        ctx.fillRect(x, y, 1, 1);
       }
     }
   }
 
-  // Horizontal crack lines (a few per pitch's worth of wall)
-  ctx.fillStyle = SCENE_PALETTES.wall[0];
-  for (let y = wallTopY + 20; y < wallBottomY; y += 32) {
-    const crackLen = 18 + ((y / 32) % 3) * 8;
-    const startX = WALL_LEFT + 10 + ((y / 32) % 5) * 4;
-    ctx.fillRect(startX, y, crackLen, 1);
+  // Crystal clusters: 3x3 highlight squares with shadow corners
+  ctx.fillStyle = palette.highlight;
+  for (let y = wallTopY + 8; y < wallBottomY - 4; y += 28) {
+    for (let x = xMin + 6; x < xMax - 6; x += 32) {
+      const offset = ((y / 28) | 0) % 2 === 0 ? 0 : 12;
+      const cx = x + offset;
+      ctx.fillRect(cx, y, 3, 3);
+      ctx.fillStyle = palette.shadow;
+      ctx.fillRect(cx, y + 2, 1, 1);
+      ctx.fillRect(cx + 2, y, 1, 1);
+      ctx.fillStyle = palette.highlight;
+    }
   }
 
-  // Summit cap: highlight band along the top
-  ctx.fillStyle = SCENE_PALETTES.wall[2];
-  ctx.fillRect(WALL_LEFT + 4, wallTopY, WALL_RIGHT - WALL_LEFT - 8, 2);
-  ctx.fillStyle = SCENE_PALETTES.wall[3];
-  ctx.fillRect(WALL_LEFT + 16, wallTopY + 2, WALL_RIGHT - WALL_LEFT - 32, 1);
+  // Thin diagonal cracks (one every ~50px)
+  ctx.fillStyle = palette.shadow;
+  for (let y = wallTopY + 18; y < wallBottomY - 8; y += 52) {
+    const startX = xMin + ((y / 52) | 0) % 4 * 6;
+    for (let i = 0; i < 26; i++) {
+      ctx.fillRect(startX + i, y + (i >> 1), 1, 1);
+    }
+  }
 }
 
-function wallTopYFor(route: Route): number {
-  const height = computeLogicalHeight(route.pitches.length);
-  const wallHeight = Math.max(1, route.pitches.length) * PITCH_HEIGHT + SUMMIT_HEIGHT;
-  return height - GROUND_HEIGHT - wallHeight;
+// Limestone: horizontal sediment bands + pockets (carved circular shadows) + drips.
+function paintLimestone(
+  ctx: CanvasRenderingContext2D,
+  palette: RockPalette,
+  wallTopY: number,
+  wallBottomY: number
+): void {
+  const xMin = WALL_LEFT + 4;
+  const xMax = WALL_RIGHT - 4;
+  const width = xMax - xMin;
+
+  // Faint horizontal banding
+  ctx.fillStyle = palette.shadow;
+  for (let y = wallTopY + 3; y < wallBottomY; y += 7) {
+    ctx.fillRect(xMin, y, width, 1);
+  }
+
+  // Midtone wash speckle between bands
+  ctx.fillStyle = palette.midtone;
+  for (let y = wallTopY + 1; y < wallBottomY; y += 7) {
+    for (let x = xMin; x < xMax; x += 5) {
+      if (((x + y) * 13) % 17 < 6) ctx.fillRect(x, y, 1, 1);
+    }
+  }
+
+  // Pockets: 3x3 carved holes with shadow rim
+  for (let y = wallTopY + 8; y < wallBottomY - 4; y += 22) {
+    for (let x = xMin + 4; x < xMax - 4; x += 28) {
+      const off = ((y / 22) | 0) % 2 === 0 ? 0 : 14;
+      const cx = x + off;
+      ctx.fillStyle = palette.shadow;
+      ctx.fillRect(cx, y, 3, 3);
+      ctx.fillRect(cx + 1, y - 1, 1, 1);
+      ctx.fillRect(cx + 1, y + 3, 1, 1);
+      // tiny highlight on the lip
+      ctx.fillStyle = palette.highlight;
+      ctx.fillRect(cx, y - 1, 1, 1);
+    }
+  }
+
+  // Tufa drips: 1px vertical streaks of midtone
+  ctx.fillStyle = palette.midtone;
+  for (let i = 0; i < 6; i++) {
+    const x = xMin + 12 + i * 22 + (i % 2) * 4;
+    const top = wallTopY + 6 + (i * 9) % 18;
+    const len = 9 + (i * 5) % 8;
+    if (x < xMax && top + len < wallBottomY) {
+      ctx.fillRect(x, top, 1, len);
+    }
+  }
+}
+
+// Basalt: vertical columnar joints + horizontal strata bands + glints at column tops.
+function paintBasalt(
+  ctx: CanvasRenderingContext2D,
+  palette: RockPalette,
+  wallTopY: number,
+  wallBottomY: number
+): void {
+  const xMin = WALL_LEFT;
+  const xMax = WALL_RIGHT;
+  const colWidth = 10;
+
+  // Horizontal strata: 2px midtone bands every 14 rows
+  ctx.fillStyle = palette.midtone;
+  for (let y = wallTopY + 4; y < wallBottomY; y += 14) {
+    ctx.fillRect(xMin + 2, y, xMax - xMin - 4, 1);
+    // dotted second row for break-up
+    for (let x = xMin + 2; x < xMax - 2; x += 3) {
+      ctx.fillRect(x, y + 1, 1, 1);
+    }
+  }
+
+  // Vertical column edges (1px shadow lines)
+  ctx.fillStyle = palette.shadow;
+  for (let x = xMin + colWidth; x < xMax; x += colWidth) {
+    ctx.fillRect(x, wallTopY, 1, wallBottomY - wallTopY);
+  }
+  // Doubled edge on alternating columns for depth
+  for (let x = xMin + colWidth * 2; x < xMax; x += colWidth * 2) {
+    ctx.fillRect(x + 1, wallTopY + 2, 1, wallBottomY - wallTopY - 4);
+  }
+
+  // Column tops: short horizontal cap with a violet glint
+  for (let x = xMin + colWidth; x < xMax; x += colWidth) {
+    ctx.fillStyle = palette.shadow;
+    ctx.fillRect(x - 2, wallTopY, 4, 1);
+    // glint every other column, every ~36 rows
+    for (let y = wallTopY + 6; y < wallBottomY; y += 36) {
+      if ((((x / colWidth) | 0) + ((y / 36) | 0)) % 2 === 0) {
+        ctx.fillStyle = palette.highlight;
+        ctx.fillRect(x - 3, y, 1, 1);
+      }
+    }
+  }
+}
+
+// Sandstone: dense horizontal sedimentary lamination + bowl-shaped scoops + grain speckle.
+function paintSandstone(
+  ctx: CanvasRenderingContext2D,
+  palette: RockPalette,
+  wallTopY: number,
+  wallBottomY: number
+): void {
+  const xMin = WALL_LEFT + 2;
+  const xMax = WALL_RIGHT - 2;
+  const width = xMax - xMin;
+
+  // Alternating shadow lines + midtone bands every 8 rows
+  for (let y = wallTopY; y < wallBottomY; y += 8) {
+    ctx.fillStyle = palette.shadow;
+    ctx.fillRect(xMin, y, width, 1);
+    ctx.fillStyle = palette.midtone;
+    ctx.fillRect(xMin, y + 2, width, 2);
+  }
+
+  // Bowl scoops: arc of shadow pixels forming a shallow concave curve
+  ctx.fillStyle = palette.shadow;
+  for (let y = wallTopY + 12; y < wallBottomY - 6; y += 26) {
+    const phase = ((y / 26) | 0) % 3;
+    const cx = xMin + 12 + phase * 30;
+    if (cx + 12 >= xMax) continue;
+    const arc = [0, -1, -2, -2, -2, -1, 0, 1, 1, 1, 1, 0];
+    for (let i = 0; i < arc.length; i++) {
+      ctx.fillRect(cx + i, y + arc[i] + 2, 1, 1);
+    }
+  }
+
+  // Highlight grain sparkles
+  ctx.fillStyle = palette.highlight;
+  for (let y = wallTopY + 1; y < wallBottomY; y += 6) {
+    for (let x = xMin; x < xMax; x += 6) {
+      if (((x * 7 + y * 11) % 13) < 3) {
+        ctx.fillRect(x + 1, y, 1, 1);
+      }
+    }
+  }
 }
 
 function drawClouds(ctx: CanvasRenderingContext2D): void {

@@ -1,5 +1,5 @@
 import { FULLY_RENDERED, renderScene } from './wall-renderer';
-import { Route } from '../models/route.model';
+import { ROCK_TYPES, RockType, Route } from '../models/route.model';
 
 // jsdom does not implement a real canvas, so we stub a minimal recording
 // CanvasRenderingContext2D. The goal is to confirm the renderer runs without
@@ -13,10 +13,11 @@ class MockCtx {
   scale(): void {}
 }
 
-function makeRoute(pitchCount: number): Route {
+function makeRoute(pitchCount: number, rockType: RockType = 'granite'): Route {
   return {
     name: 'r',
     featureName: 'f',
+    rockType,
     pitches: Array.from({ length: pitchCount }, (_, i) => ({
       grade: '5.10',
       lengthFt: 100 + i * 10,
@@ -45,5 +46,33 @@ describe('renderScene', () => {
     renderScene(partialCtx as unknown as CanvasRenderingContext2D, makeRoute(4), { pitchIndex: 0, fraction: 0.1 });
 
     expect(partialCtx.calls).toBeLessThan(fullCtx.calls);
+  });
+
+  it('runs without throwing for every rock type', () => {
+    for (const rt of ROCK_TYPES) {
+      const ctx = new MockCtx();
+      expect(() =>
+        renderScene(ctx as unknown as CanvasRenderingContext2D, makeRoute(3, rt), FULLY_RENDERED),
+      ).not.toThrow();
+      expect(ctx.calls).toBeGreaterThan(0);
+    }
+  });
+
+  it('renders a taller wall for routes with longer pitches', () => {
+    const ctxA = new MockCtx();
+    const ctxB = new MockCtx();
+    const shortRoute: Route = { ...makeRoute(3), pitches: [
+      { grade: '5.10', lengthFt: 50, description: '' },
+      { grade: '5.10', lengthFt: 50, description: '' },
+      { grade: '5.10', lengthFt: 50, description: '' },
+    ]};
+    const tallRoute: Route = { ...makeRoute(3), pitches: [
+      { grade: '5.10', lengthFt: 400, description: '' },
+      { grade: '5.10', lengthFt: 400, description: '' },
+      { grade: '5.10', lengthFt: 400, description: '' },
+    ]};
+    renderScene(ctxA as unknown as CanvasRenderingContext2D, shortRoute, FULLY_RENDERED);
+    renderScene(ctxB as unknown as CanvasRenderingContext2D, tallRoute, FULLY_RENDERED);
+    expect(ctxB.calls).toBeGreaterThan(ctxA.calls);
   });
 });

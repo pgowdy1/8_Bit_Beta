@@ -42,6 +42,22 @@ export const SCENE_PALETTES = {
   route: [NES.black, NES.darkRed, NES.red, NES.yellow],
 } as const;
 
+// Per-rock-type 4-color sub-palette. Slot semantics: [shadow, base, midtone, highlight].
+// Renderer fills the wall with `base`, then layers texture using shadow/midtone/highlight.
+export interface RockPalette {
+  shadow: string;
+  base: string;
+  midtone: string;
+  highlight: string;
+}
+
+export const ROCK_PALETTES: Record<'granite' | 'limestone' | 'basalt' | 'sandstone', RockPalette> = {
+  granite:   { shadow: '#3C3C3C', base: '#7C7C7C', midtone: '#BCBCBC', highlight: '#FCFCFC' },
+  limestone: { shadow: '#787878', base: '#f1ca4a', midtone: '#5a5a5a', highlight: '#ffee57' },
+  basalt:    { shadow: '#000000', base: '#554c45', midtone: '#503e3e', highlight: '#232229' },
+  sandstone: { shadow: '#fc7130', base: '#AC7C00', midtone: '#FCA044', highlight: '#FCE0A8' },
+};
+
 export function isValidHex(color: string): boolean {
   return /^#[0-9A-Fa-f]{6}$/.test(color);
 }

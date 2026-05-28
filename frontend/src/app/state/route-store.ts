@@ -1,5 +1,5 @@
 import { Injectable, computed, signal } from '@angular/core';
-import { Move, Pitch, Route, emptyPitch, seedRoute } from '../models/route.model';
+import { Move, Pitch, RockType, Route, emptyPitch, seedRoute } from '../models/route.model';
 
 @Injectable({ providedIn: 'root' })
 export class RouteStore {
@@ -21,6 +21,10 @@ export class RouteStore {
 
   setFeatureName(featureName: string): void {
     this.route.update((r) => ({ ...r, featureName }));
+  }
+
+  setRockType(rockType: RockType): void {
+    this.route.update((r) => ({ ...r, rockType }));
   }
 
   addPitch(): void {

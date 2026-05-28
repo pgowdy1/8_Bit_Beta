@@ -10,9 +10,14 @@ export interface Pitch {
   moves?: Move[];
 }
 
+export type RockType = 'granite' | 'limestone' | 'basalt' | 'sandstone';
+
+export const ROCK_TYPES: readonly RockType[] = ['granite', 'limestone', 'basalt', 'sandstone'];
+
 export interface Route {
   name: string;
   featureName: string;
+  rockType: RockType;
   pitches: Pitch[];
 }
 
@@ -28,6 +33,7 @@ export function seedRoute(): Route {
   return {
     name: 'The Nose',
     featureName: 'El Capitan',
+    rockType: 'granite',
     pitches: [
       {
         grade: '5.11c',

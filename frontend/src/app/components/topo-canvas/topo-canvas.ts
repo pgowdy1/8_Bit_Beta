@@ -9,6 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { RouteStore } from '../../state/route-store';
+import { Route } from '../../models/route.model';
 import { hitTest } from '../../rendering/hit-detection';
 import { computeLogicalHeight, LOGICAL_WIDTH } from '../../rendering/layout';
 import {
@@ -39,7 +40,7 @@ export class TopoCanvas implements OnDestroy {
     effect(() => {
       const route = this.store.route();
       const canvas = this.canvasRef().nativeElement;
-      this.resizeCanvasFor(canvas, route.pitches.length);
+      this.resizeCanvasFor(canvas, route);
       if (route !== this.lastRouteRef) {
         this.lastRouteRef = route;
         this.startAnimation();
@@ -70,7 +71,7 @@ export class TopoCanvas implements OnDestroy {
   @HostListener('window:resize')
   onResize(): void {
     const canvas = this.canvasRef().nativeElement;
-    this.resizeCanvasFor(canvas, this.store.pitchCount());
+    this.resizeCanvasFor(canvas, this.store.route());
     this.drawOnce();
   }
 
@@ -92,8 +93,8 @@ export class TopoCanvas implements OnDestroy {
     canvas.style.cursor = idx === null ? 'crosshair' : 'pointer';
   }
 
-  private resizeCanvasFor(canvas: HTMLCanvasElement, pitchCount: number): void {
-    const logicalHeight = computeLogicalHeight(pitchCount);
+  private resizeCanvasFor(canvas: HTMLCanvasElement, route: Route): void {
+    const logicalHeight = computeLogicalHeight(route);
     canvas.width = LOGICAL_WIDTH * DISPLAY_SCALE;
     canvas.height = logicalHeight * DISPLAY_SCALE;
     canvas.style.width = `${LOGICAL_WIDTH * DISPLAY_SCALE}px`;

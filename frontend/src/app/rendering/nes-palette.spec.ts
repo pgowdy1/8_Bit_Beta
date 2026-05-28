@@ -1,4 +1,5 @@
-import { NES, NES_PALETTE, SCENE_PALETTES, isValidHex } from './nes-palette';
+import { NES, NES_PALETTE, ROCK_PALETTES, SCENE_PALETTES, isValidHex } from './nes-palette';
+import { ROCK_TYPES } from '../models/route.model';
 
 describe('NES palette', () => {
   it('contains 60 palette slots (~54 distinct after dedup, matching NES register space)', () => {
@@ -27,6 +28,26 @@ describe('NES palette', () => {
     expect(SCENE_PALETTES.wall.length).toBe(4);
     expect(SCENE_PALETTES.ground.length).toBe(4);
     expect(SCENE_PALETTES.route.length).toBe(4);
+  });
+
+  it('exposes a 4-slot palette for every rock type', () => {
+    for (const rt of ROCK_TYPES) {
+      const p = ROCK_PALETTES[rt];
+      expect(p).toBeTruthy();
+      const slots = [p.shadow, p.base, p.midtone, p.highlight];
+      expect(slots.length).toBe(4);
+      for (const c of slots) {
+        expect(isValidHex(c)).toBe(true);
+      }
+    }
+  });
+
+  it('each rock palette has 4 distinct colors', () => {
+    for (const rt of ROCK_TYPES) {
+      const p = ROCK_PALETTES[rt];
+      const unique = new Set([p.shadow, p.base, p.midtone, p.highlight]);
+      expect(unique.size).toBe(4);
+    }
   });
 
   it('rejects invalid hex strings', () => {

@@ -6,11 +6,15 @@ import { Route } from '../models/route.model';
 export const LOGICAL_WIDTH = 256;
 export const GROUND_HEIGHT = 24;
 export const SKY_HEIGHT = 40;
-export const PITCH_HEIGHT = 40;
 export const SUMMIT_HEIGHT = 16;
 export const WALL_LEFT = 64;
 export const WALL_RIGHT = 192;
 export const WALL_CENTER = (WALL_LEFT + WALL_RIGHT) / 2;
+
+// Pitch height scales with rope length. 0.4 px/ft keeps a 100ft pitch at the
+// previously-hardcoded 40px slot, so existing seed routes look the same.
+export const PIXELS_PER_FOOT = 0.4;
+export const MIN_PITCH_PX = 8;
 
 export interface AnchorPoint {
   x: number;
@@ -23,26 +27,36 @@ export interface PitchSegment {
   top: AnchorPoint;
 }
 
-export function computeLogicalHeight(pitchCount: number): number {
-  const wallHeight = Math.max(1, pitchCount) * PITCH_HEIGHT + SUMMIT_HEIGHT;
-  return GROUND_HEIGHT + wallHeight + SKY_HEIGHT;
+export function pitchPx(lengthFt: number): number {
+  const px = Math.round(Math.max(0, lengthFt) * PIXELS_PER_FOOT);
+  return Math.max(MIN_PITCH_PX, px);
 }
 
-// Pitches are stacked bottom-up. The first pitch sits just above the ground;
-// each subsequent pitch stacks on top. Anchors are placed at the join between
-// consecutive pitches; we wander horizontally slightly so the line zig-zags.
+export function wallHeight(route: Route): number {
+  if (route.pitches.length === 0) return MIN_PITCH_PX;
+  return route.pitches.reduce((sum, p) => sum + pitchPx(p.lengthFt), 0);
+}
+
+export function computeLogicalHeight(route: Route): number {
+  return GROUND_HEIGHT + wallHeight(route) + SUMMIT_HEIGHT + SKY_HEIGHT;
+}
+
+// Pitches stack bottom-up. Each pitch's bottom anchor sits where the previous
+// pitch's top ended; pitch 0's bottom sits just above the ground.
 export function computeSegments(route: Route): PitchSegment[] {
-  const total = computeLogicalHeight(route.pitches.length);
+  const total = computeLogicalHeight(route);
   const segments: PitchSegment[] = [];
+  let bottomY = total - GROUND_HEIGHT;
 
   for (let i = 0; i < route.pitches.length; i++) {
-    const bottomY = total - GROUND_HEIGHT - i * PITCH_HEIGHT;
-    const topY = bottomY - PITCH_HEIGHT;
+    const h = pitchPx(route.pitches[i].lengthFt);
+    const topY = bottomY - h;
     segments.push({
       pitchIndex: i,
-      bottom: { x: anchorX(i, route.pitches.length), y: bottomY },
-      top: { x: anchorX(i + 1, route.pitches.length), y: topY },
+      bottom: { x: anchorX(i), y: bottomY },
+      top: { x: anchorX(i + 1), y: topY },
     });
+    bottomY = topY;
   }
 
   return segments;
@@ -50,9 +64,8 @@ export function computeSegments(route: Route): PitchSegment[] {
 
 // Deterministic horizontal wander for anchors so the route line looks hand-drawn.
 // Pitch 0 starts at the wall center; subsequent anchors offset by a smooth zig-zag.
-export function anchorX(anchorIndex: number, _pitchCount: number): number {
+export function anchorX(anchorIndex: number): number {
   const span = (WALL_RIGHT - WALL_LEFT) / 2 - 12;
-  // Triangle wave with period 4 to look intentional, not random.
   const phase = anchorIndex % 4;
   const offsets = [0, span * 0.5, 0, -span * 0.5];
   return Math.round(WALL_CENTER + offsets[phase]);

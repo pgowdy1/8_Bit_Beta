@@ -23,6 +23,20 @@
     />
   </div>
 
+  <div class="route-form__field">
+    <label for="rock-type">Rock type</label>
+    <select
+      id="rock-type"
+      class="route-form__select"
+      [value]="store.route().rockType"
+      (change)="onRockTypeChange($any($event.target).value)"
+    >
+      @for (rt of rockTypes; track rt) {
+        <option [value]="rt">{{ rt.toUpperCase() }}</option>
+      }
+    </select>
+  </div>
+
   <div class="route-form__pitches-header">
     <h3>PITCHES</h3>
     <button type="button" class="route-form__add" (click)="addPitch()">+ ADD</button>
