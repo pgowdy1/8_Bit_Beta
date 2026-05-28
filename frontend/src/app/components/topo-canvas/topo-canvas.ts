@@ -1,0 +1,146 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  effect,
+  inject,
+  viewChild,
+} from '@angular/core';
+import { RouteStore } from '../../state/route-store';
+import { hitTest } from '../../rendering/hit-detection';
+import { computeLogicalHeight, LOGICAL_WIDTH } from '../../rendering/layout';
+import {
+  FULLY_RENDERED,
+  RenderProgress,
+  renderScene,
+} from '../../rendering/wall-renderer';
+
+const DISPLAY_SCALE = 3; // device pixels per logical pixel
+const PITCH_ANIMATION_MS = 220;
+
+@Component({
+  selector: 'app-topo-canvas',
+  templateUrl: './topo-canvas.html',
+  styleUrl: './topo-canvas.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class TopoCanvas implements OnDestroy {
+  protected readonly store = inject(RouteStore);
+  private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('canvasEl');
+
+  private rafId: number | null = null;
+  private animStartMs = 0;
+  private currentProgress: RenderProgress = { ...FULLY_RENDERED };
+  private lastRouteRef: unknown = null;
+
+  constructor() {
+    effect(() => {
+      const route = this.store.route();
+      const canvas = this.canvasRef().nativeElement;
+      this.resizeCanvasFor(canvas, route.pitches.length);
+      if (route !== this.lastRouteRef) {
+        this.lastRouteRef = route;
+        this.startAnimation();
+      } else {
+        this.drawOnce();
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.rafId !== null) cancelAnimationFrame(this.rafId);
+  }
+
+  replay(): void {
+    this.startAnimation();
+  }
+
+  exportPng(): void {
+    const url = this.canvasRef().nativeElement.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '8bit-beta-topo.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    const canvas = this.canvasRef().nativeElement;
+    this.resizeCanvasFor(canvas, this.store.pitchCount());
+    this.drawOnce();
+  }
+
+  onCanvasClick(event: MouseEvent): void {
+    const canvas = this.canvasRef().nativeElement;
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const idx = hitTest(this.store.route(), rect.width, rect.height, x, y);
+    if (idx !== null) this.store.selectPitch(idx);
+  }
+
+  onCanvasMouseMove(event: MouseEvent): void {
+    const canvas = this.canvasRef().nativeElement;
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const idx = hitTest(this.store.route(), rect.width, rect.height, x, y);
+    canvas.style.cursor = idx === null ? 'crosshair' : 'pointer';
+  }
+
+  private resizeCanvasFor(canvas: HTMLCanvasElement, pitchCount: number): void {
+    const logicalHeight = computeLogicalHeight(pitchCount);
+    canvas.width = LOGICAL_WIDTH * DISPLAY_SCALE;
+    canvas.height = logicalHeight * DISPLAY_SCALE;
+    canvas.style.width = `${LOGICAL_WIDTH * DISPLAY_SCALE}px`;
+    canvas.style.height = `${logicalHeight * DISPLAY_SCALE}px`;
+  }
+
+  private startAnimation(): void {
+    if (this.rafId !== null) cancelAnimationFrame(this.rafId);
+    this.animStartMs = performance.now();
+    this.currentProgress = { pitchIndex: 0, fraction: 0 };
+    this.tick();
+  }
+
+  private tick = (): void => {
+    const elapsed = performance.now() - this.animStartMs;
+    const pitchCount = this.store.pitchCount();
+    if (pitchCount === 0) {
+      this.currentProgress = { ...FULLY_RENDERED };
+      this.drawOnce();
+      this.rafId = null;
+      return;
+    }
+
+    const totalIndex = elapsed / PITCH_ANIMATION_MS;
+    const idx = Math.floor(totalIndex);
+    const frac = totalIndex - idx;
+
+    if (idx >= pitchCount) {
+      this.currentProgress = { ...FULLY_RENDERED };
+      this.drawOnce();
+      this.rafId = null;
+      return;
+    }
+
+    this.currentProgress = { pitchIndex: idx, fraction: frac };
+    this.drawOnce();
+    this.rafId = requestAnimationFrame(this.tick);
+  };
+
+  private drawOnce(): void {
+    const canvas = this.canvasRef().nativeElement;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.imageSmoothingEnabled = false;
+    ctx.save();
+    ctx.scale(DISPLAY_SCALE, DISPLAY_SCALE);
+    renderScene(ctx, this.store.route(), this.currentProgress);
+    ctx.restore();
+  }
+}

@@ -1,0 +1,112 @@
+<section class="route-form">
+  <h2>ROUTE BUILDER</h2>
+
+  <div class="route-form__field">
+    <label for="route-name">Route name</label>
+    <input
+      id="route-name"
+      type="text"
+      [value]="store.route().name"
+      (input)="onRouteNameInput($any($event.target).value)"
+      placeholder="The Nose"
+    />
+  </div>
+
+  <div class="route-form__field">
+    <label for="feature-name">Feature</label>
+    <input
+      id="feature-name"
+      type="text"
+      [value]="store.route().featureName"
+      (input)="onFeatureNameInput($any($event.target).value)"
+      placeholder="El Capitan"
+    />
+  </div>
+
+  <div class="route-form__pitches-header">
+    <h3>PITCHES</h3>
+    <button type="button" class="route-form__add" (click)="addPitch()">+ ADD</button>
+  </div>
+
+  <div class="route-form__pitches">
+    @for (pitch of store.route().pitches; track $index; let pIdx = $index) {
+      <article class="pitch" [class.pitch--expanded]="expandedPitch() === pIdx">
+        <header class="pitch__header" (click)="toggleExpanded(pIdx)">
+          <span class="pitch__num">P{{ pIdx + 1 }}</span>
+          <span class="pitch__grade">{{ pitch.grade || '?' }}</span>
+          <span class="pitch__len">{{ pitch.lengthFt }} FT</span>
+          <button
+            type="button"
+            class="pitch__remove"
+            (click)="$event.stopPropagation(); removePitch(pIdx)"
+          >X</button>
+        </header>
+
+        @if (expandedPitch() === pIdx) {
+          <div class="pitch__body">
+            <div class="route-form__field route-form__field--row">
+              <div>
+                <label [for]="'p-grade-' + pIdx">Grade</label>
+                <input
+                  [id]="'p-grade-' + pIdx"
+                  type="text"
+                  [value]="pitch.grade"
+                  (input)="onPitchFieldInput(pIdx, 'grade', $any($event.target).value)"
+                />
+              </div>
+              <div>
+                <label [for]="'p-len-' + pIdx">Length (ft)</label>
+                <input
+                  [id]="'p-len-' + pIdx"
+                  type="number"
+                  min="0"
+                  [value]="pitch.lengthFt"
+                  (input)="onPitchLengthInput(pIdx, $any($event.target).value)"
+                />
+              </div>
+            </div>
+
+            <div class="route-form__field">
+              <label [for]="'p-desc-' + pIdx">Description</label>
+              <textarea
+                [id]="'p-desc-' + pIdx"
+                [value]="pitch.description"
+                (input)="onPitchFieldInput(pIdx, 'description', $any($event.target).value)"
+                placeholder="Describe the pitch..."
+              ></textarea>
+            </div>
+
+            <div class="pitch__moves-header">
+              <span>MOVES (optional)</span>
+              <button type="button" class="pitch__add-move" (click)="addMove(pIdx)">+ MOVE</button>
+            </div>
+
+            @for (move of movesOf(pIdx); track $index; let mIdx = $index) {
+              <div class="move">
+                <input
+                  type="text"
+                  placeholder="Move label"
+                  [value]="move.label"
+                  (input)="onMoveFieldInput(pIdx, mIdx, 'label', $any($event.target).value)"
+                />
+                <input
+                  type="text"
+                  placeholder="Optional detail"
+                  [value]="move.detail || ''"
+                  (input)="onMoveFieldInput(pIdx, mIdx, 'detail', $any($event.target).value)"
+                />
+                <button
+                  type="button"
+                  class="move__remove"
+                  (click)="removeMove(pIdx, mIdx)"
+                >X</button>
+              </div>
+            }
+          </div>
+        }
+      </article>
+    } @empty {
+      <p class="route-form__empty">No pitches yet. Add your first one above.</p>
+    }
+  </div>
+</section>

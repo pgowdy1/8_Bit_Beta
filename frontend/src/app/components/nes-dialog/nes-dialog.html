@@ -1,0 +1,41 @@
+@if (visible()) {
+  <div class="nes-dialog__backdrop" (click)="onBackdropClick($event)">
+    <div class="nes-dialog" role="dialog" aria-modal="true">
+      <header class="nes-dialog__header">
+        <span class="nes-dialog__pitch">{{ pitchNumber() }}</span>
+        <span class="nes-dialog__grade">{{ store.selectedPitch()?.grade }}</span>
+        <span class="nes-dialog__len">{{ store.selectedPitch()?.lengthFt }} FT</span>
+        <button type="button" class="nes-dialog__close" (click)="close()" aria-label="Close">X</button>
+      </header>
+
+      <div class="nes-dialog__body" (click)="nextOrClose()">
+        <p class="nes-dialog__text">
+          {{ displayedText() || '(no description)' }}
+          @if (!typingDone()) {
+            <span class="nes-dialog__caret" aria-hidden="true">_</span>
+          }
+        </p>
+
+        @if (typingDone() && moves().length > 0) {
+          <section class="nes-dialog__moves">
+            <h4>MOVES</h4>
+            <ul>
+              @for (move of moves(); track $index) {
+                <li>
+                  <span class="nes-dialog__move-label">&gt; {{ move.label }}</span>
+                  @if (move.detail) {
+                    <span class="nes-dialog__move-detail">{{ move.detail }}</span>
+                  }
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      </div>
+
+      <footer class="nes-dialog__footer">
+        <span class="nes-dialog__prompt">{{ typingDone() ? '▼ OK' : '▶ SKIP' }}</span>
+      </footer>
+    </div>
+  </div>
+}

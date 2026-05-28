@@ -1,0 +1,166 @@
+// 8-Bit Beta - global NES chrome styles
+// Strict NES palette + pixel-perfect rendering.
+
+@use 'sass:color';
+
+// ============================================================
+// NES palette tokens (subset used across the UI chrome)
+// Full palette lives in rendering/nes-palette.ts for canvas use.
+// ============================================================
+$nes-black:        #000000;
+$nes-white:        #FCFCFC;
+$nes-light-gray:   #BCBCBC;
+$nes-mid-gray:     #7C7C7C;
+$nes-dark-gray:    #3C3C3C;
+$nes-blue:         #0078F8;
+$nes-dark-blue:    #0000BC;
+$nes-light-blue:   #3CBCFC;
+$nes-red:          #F83800;
+$nes-dark-red:     #A81000;
+$nes-yellow:       #FCBC3C;
+$nes-green:        #00B800;
+$nes-sky:          #BCDCFC;
+
+// ============================================================
+// Reset + base
+// ============================================================
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  background: $nes-black;
+  color: $nes-white;
+  font-size: 12px;
+  line-height: 1.6;
+
+  // Pixel-perfect text rendering
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+}
+
+img,
+canvas {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+// ============================================================
+// NES chrome utilities (mixins)
+// ============================================================
+@mixin nes-box($bg: $nes-black, $border: $nes-white) {
+  background: $bg;
+  border: 4px solid $border;
+  box-shadow:
+    0 0 0 4px $nes-black,
+    inset 0 0 0 2px $bg;
+  padding: 16px;
+}
+
+@mixin nes-button($bg: $nes-red, $bg-dark: $nes-dark-red) {
+  display: inline-block;
+  background: $bg;
+  color: $nes-white;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  padding: 8px 12px;
+  border: 4px solid $nes-black;
+  box-shadow: inset -4px -4px 0 0 $bg-dark;
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    background: color.adjust($bg, $lightness: 5%);
+  }
+
+  &:active {
+    box-shadow: inset 4px 4px 0 0 $bg-dark;
+    transform: translate(2px, 2px);
+  }
+
+  &:disabled {
+    background: $nes-mid-gray;
+    box-shadow: inset -4px -4px 0 0 $nes-dark-gray;
+    cursor: not-allowed;
+  }
+}
+
+@mixin nes-input {
+  background: $nes-black;
+  color: $nes-white;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  padding: 8px;
+  border: 3px solid $nes-light-gray;
+  outline: none;
+  width: 100%;
+
+  &:focus {
+    border-color: $nes-yellow;
+  }
+}
+
+// ============================================================
+// Headings + text
+// ============================================================
+h1,
+h2,
+h3 {
+  font-family: 'Press Start 2P', monospace;
+  margin: 0 0 12px 0;
+  color: $nes-white;
+}
+
+h1 { font-size: 18px; }
+h2 { font-size: 14px; }
+h3 { font-size: 12px; color: $nes-yellow; }
+
+label {
+  display: block;
+  font-size: 9px;
+  color: $nes-light-gray;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+button {
+  @include nes-button;
+}
+
+input,
+textarea {
+  @include nes-input;
+  font-family: 'Press Start 2P', monospace;
+}
+
+textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
+// Make NES color tokens available to component SCSS via :root CSS variables
+:root {
+  --nes-black:      #{$nes-black};
+  --nes-white:      #{$nes-white};
+  --nes-light-gray: #{$nes-light-gray};
+  --nes-mid-gray:   #{$nes-mid-gray};
+  --nes-dark-gray:  #{$nes-dark-gray};
+  --nes-blue:       #{$nes-blue};
+  --nes-dark-blue:  #{$nes-dark-blue};
+  --nes-light-blue: #{$nes-light-blue};
+  --nes-red:        #{$nes-red};
+  --nes-dark-red:   #{$nes-dark-red};
+  --nes-yellow:     #{$nes-yellow};
+  --nes-green:      #{$nes-green};
+  --nes-sky:        #{$nes-sky};
+}
