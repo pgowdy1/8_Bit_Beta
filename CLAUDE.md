@@ -23,9 +23,9 @@ dotnet test                     # Test
 
 ### Frontend (run from `frontend/` directory)
 ```bash
-npm start       # Dev server
+npm start       # Dev server (http://localhost:4200)
 npm run build   # Production build
-npm test        # Unit tests
+npm test        # Unit tests — Vitest + jsdom, NOT Karma. Do NOT pass --watch=false or --browsers=...; vitest runs once by default.
 ```
 
 ## Agent Delegation
