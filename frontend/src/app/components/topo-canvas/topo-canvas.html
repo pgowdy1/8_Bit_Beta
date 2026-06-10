@@ -16,7 +16,11 @@
   </div>
 
   <footer class="topo-canvas__hint">
-    <span>CLICK A PITCH FOR DETAILS</span>
+    @if (canvasStale()) {
+      <span class="topo-canvas__stale">ROUTE EDITED &mdash; PRESS REPLAY TO RE-RENDER</span>
+    } @else {
+      <span>CLICK A PITCH FOR DETAILS</span>
+    }
     <span>{{ store.pitchCount() }} PITCHES &middot; {{ store.totalLengthFt() }} FT</span>
   </footer>
 </section>

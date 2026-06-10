@@ -4,8 +4,10 @@ import {
   ElementRef,
   HostListener,
   OnDestroy,
+  computed,
   effect,
   inject,
+  signal,
   viewChild,
 } from '@angular/core';
 import { RouteStore } from '../../state/route-store';
@@ -36,6 +38,13 @@ export class TopoCanvas implements OnDestroy {
   protected readonly store = inject(RouteStore);
   private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('canvasEl');
 
+  // The canvas renders a snapshot of the route, NOT the live form state.
+  // Edits accumulate in the store; pressing Replay syncs the snapshot and
+  // plays the draw animation. This stops the scene re-animating on every
+  // keystroke while pitch fields are being edited.
+  protected readonly displayedRoute = signal<Route>(this.store.route());
+  protected readonly canvasStale = computed(() => this.displayedRoute() !== this.store.route());
+
   private rafId: number | null = null;
   private animStartMs = 0;
   private currentProgress: RenderProgress = { ...FULLY_RENDERED };
@@ -43,7 +52,7 @@ export class TopoCanvas implements OnDestroy {
 
   constructor() {
     effect(() => {
-      const route = this.store.route();
+      const route = this.displayedRoute();
       const canvas = this.canvasRef().nativeElement;
       this.resizeCanvasFor(canvas, route);
       if (route !== this.lastRouteRef) {
@@ -60,7 +69,12 @@ export class TopoCanvas implements OnDestroy {
   }
 
   replay(): void {
-    this.startAnimation();
+    if (this.canvasStale()) {
+      // Sync the snapshot; the effect sees the new reference and animates.
+      this.displayedRoute.set(this.store.route());
+    } else {
+      this.startAnimation();
+    }
   }
 
   exportPng(): void {
@@ -76,7 +90,7 @@ export class TopoCanvas implements OnDestroy {
   @HostListener('window:resize')
   onResize(): void {
     const canvas = this.canvasRef().nativeElement;
-    this.resizeCanvasFor(canvas, this.store.route());
+    this.resizeCanvasFor(canvas, this.displayedRoute());
     this.drawOnce();
   }
 
@@ -85,8 +99,12 @@ export class TopoCanvas implements OnDestroy {
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-    const idx = hitTest(this.store.route(), rect.width, rect.height, x, y);
-    if (idx !== null) this.store.selectPitch(idx);
+    // Hit-test against the displayed snapshot so clicks match the pixels;
+    // guard the index in case pitches were removed since the last Replay.
+    const idx = hitTest(this.displayedRoute(), rect.width, rect.height, x, y);
+    if (idx !== null && idx < this.store.route().pitches.length) {
+      this.store.selectPitch(idx);
+    }
   }
 
   onCanvasMouseMove(event: MouseEvent): void {
@@ -94,7 +112,7 @@ export class TopoCanvas implements OnDestroy {
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-    const idx = hitTest(this.store.route(), rect.width, rect.height, x, y);
+    const idx = hitTest(this.displayedRoute(), rect.width, rect.height, x, y);
     canvas.style.cursor = idx === null ? 'crosshair' : 'pointer';
   }
 
@@ -125,7 +143,7 @@ export class TopoCanvas implements OnDestroy {
 
   private tick = (): void => {
     const elapsed = performance.now() - this.animStartMs;
-    const pitchCount = this.store.pitchCount();
+    const pitchCount = this.displayedRoute().pitches.length;
     if (pitchCount === 0) {
       this.currentProgress = { ...FULLY_RENDERED };
       this.drawOnce();
@@ -156,7 +174,7 @@ export class TopoCanvas implements OnDestroy {
     ctx.imageSmoothingEnabled = false;
     ctx.save();
     ctx.scale(this.displayScale, this.displayScale);
-    renderScene(ctx, this.store.route(), this.currentProgress);
+    renderScene(ctx, this.displayedRoute(), this.currentProgress);
     ctx.restore();
   }
 }
