@@ -1,4 +1,5 @@
 import { drawBirds, drawClouds, drawSky, drawSun } from './sky';
+import { LOGICAL_WIDTH } from './layout';
 
 class MockCtx {
   fillStyle = '';
@@ -19,7 +20,7 @@ describe('sky', () => {
   it('drawSky covers the full sky area from y=0 to the horizon', () => {
     const c = ctx();
     drawSky(c as unknown as CanvasRenderingContext2D, 200);
-    const bands = c.rects.filter((r) => r.w === 256 && r.h > 0);
+    const bands = c.rects.filter((r) => r.w === LOGICAL_WIDTH && r.h > 0);
     const minY = Math.min(...bands.map((r) => r.y));
     const maxY = Math.max(...bands.map((r) => r.y + r.h));
     expect(minY).toBe(0);

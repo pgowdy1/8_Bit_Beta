@@ -31,7 +31,7 @@ Layers render back-to-front, all **deterministic** (no `Math.random`; seeded ari
 8. **Route layer** — rope, quickdraws, anchors, pitch labels, climber.
 9. **Garnish** — 1–2 bird silhouettes gliding near the summit.
 
-Unchanged: 256-px logical width, `DISPLAY_SCALE = 3`, pitch-height-from-rope-length math (`PIXELS_PER_FOOT`), variable canvas height, PNG export, 220 ms/pitch draw animation mechanics.
+Logical width: 384 px (widened post-verification for landscape panels; wall at x 96–288). Display scale: responsive integer fit of the whole scene (2x–8x). Unchanged: pitch-height-from-rope-length math (`PIXELS_PER_FOOT`), variable canvas height, PNG export, 220 ms/pitch draw animation mechanics.
 
 ## Color system
 

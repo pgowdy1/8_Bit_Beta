@@ -3,12 +3,12 @@
 
 import { Route } from '../models/route.model';
 
-export const LOGICAL_WIDTH = 256;
+export const LOGICAL_WIDTH = 384;
 export const GROUND_HEIGHT = 24;
 export const SKY_HEIGHT = 40;
 export const SUMMIT_HEIGHT = 16;
-export const WALL_LEFT = 64;
-export const WALL_RIGHT = 192;
+export const WALL_LEFT = 96;
+export const WALL_RIGHT = 288;
 export const WALL_CENTER = (WALL_LEFT + WALL_RIGHT) / 2;
 
 // Pitch height scales with rope length. 0.4 px/ft keeps a 100ft pitch at the
@@ -117,7 +117,7 @@ export function anchorX(anchorIndex: number): number {
 // Summit narrows to a peak; the bottom two or three bands flare wider like a
 // talus apron (a partial terminal band always flares). Notch depth never
 // exceeds 10px, keeping >= 8px of rock around the anchor zone (anchorX range
-// [102, 154]; nominal edges 64/192).
+// [150, 234]; nominal edges 96/288).
 export interface WallBand {
   y0: number;
   y1: number;

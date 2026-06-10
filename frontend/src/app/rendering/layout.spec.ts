@@ -33,8 +33,8 @@ function makeRoute(lengths: number[]): Route {
 }
 
 describe('layout', () => {
-  it('logical width matches NES screen width', () => {
-    expect(LOGICAL_WIDTH).toBe(256);
+  it('logical width is the widescreen scene width', () => {
+    expect(LOGICAL_WIDTH).toBe(384);
   });
 
   it('wall sits between left and right bounds', () => {
@@ -164,10 +164,12 @@ describe('layout', () => {
   it('wallSilhouette keeps every anchor at least 8px inside the rock', () => {
     const route = makeRoute([100, 100, 100, 100, 100, 100]);
     const bands = wallSilhouette(route);
+    const xs = Array.from({ length: 8 }, (_, i) => anchorX(i));
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
     for (const b of bands) {
-      // anchorX range is [102, 154]
-      expect(b.left).toBeLessThanOrEqual(102 - 8);
-      expect(b.right).toBeGreaterThanOrEqual(154 + 8);
+      expect(b.left).toBeLessThanOrEqual(minX - 8);
+      expect(b.right).toBeGreaterThanOrEqual(maxX + 8);
     }
   });
 

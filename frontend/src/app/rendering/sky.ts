@@ -1,4 +1,4 @@
-import { LOGICAL_WIDTH } from './layout';
+import { LOGICAL_WIDTH, WALL_LEFT, WALL_RIGHT } from './layout';
 import { SKY_BANDS, SPRITE_PALETTES, STAR_COLOR, SUN_COLORS } from './nes-palette';
 import { BIRD, CLOUD, drawSprite } from './sprites';
 
@@ -40,15 +40,16 @@ export function drawSky(ctx: CanvasRenderingContext2D, horizonY: number): void {
 export function drawSun(ctx: CanvasRenderingContext2D, horizonY: number): void {
   // Low on the horizon, right of the wall; ridges drawn later partially
   // occlude its lower edge.
+  const x = LOGICAL_WIDTH - 60;
   ctx.fillStyle = SUN_COLORS.halo;
-  ctx.fillRect(196, horizonY - 28, 16, 16);
+  ctx.fillRect(x, horizonY - 28, 16, 16);
   ctx.fillStyle = SUN_COLORS.core;
-  ctx.fillRect(198, horizonY - 26, 12, 12);
+  ctx.fillRect(x + 2, horizonY - 26, 12, 12);
 }
 
 export function drawClouds(ctx: CanvasRenderingContext2D, horizonY: number): void {
-  // One cloud roughly every 64px of sky, alternating across three columns.
-  const xs = [16, 150, 90];
+  // One cloud roughly every 64px of sky, alternating across four columns.
+  const xs = [16, 240, 120, 300];
   let i = 0;
   // Skies shorter than ~64px get no clouds — intentional for tiny routes.
   for (let y = 14; y < horizonY - 50; y += 64, i++) {
@@ -58,6 +59,6 @@ export function drawClouds(ctx: CanvasRenderingContext2D, horizonY: number): voi
 
 // NOTE: takes summitY (top of the wall), NOT horizonY like the other draw fns.
 export function drawBirds(ctx: CanvasRenderingContext2D, summitY: number): void {
-  drawSprite(ctx, BIRD, SPRITE_PALETTES.bird, 34, summitY - 12);
-  drawSprite(ctx, BIRD, SPRITE_PALETTES.bird, 210, summitY - 20);
+  drawSprite(ctx, BIRD, SPRITE_PALETTES.bird, WALL_LEFT - 30, summitY - 12);
+  drawSprite(ctx, BIRD, SPRITE_PALETTES.bird, WALL_RIGHT + 18, summitY - 20);
 }

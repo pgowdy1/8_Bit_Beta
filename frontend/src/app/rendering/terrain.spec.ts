@@ -1,6 +1,7 @@
 import { ROCK_TYPES, RockType, Route } from '../models/route.model';
 import { ROCK_PALETTES } from './nes-palette';
 import { drawGround, drawRidges, drawWall } from './terrain';
+import { BASE_FLARE, LOGICAL_WIDTH, WALL_LEFT, WALL_RIGHT } from './layout';
 
 class MockCtx {
   fillStyle = '';
@@ -53,8 +54,8 @@ describe('terrain', () => {
     const c = new MockCtx();
     drawWall(c as unknown as CanvasRenderingContext2D, makeRoute(4));
     for (const r of c.rects) {
-      expect(r.x).toBeGreaterThanOrEqual(64 - 8);
-      expect(r.x + r.w).toBeLessThanOrEqual(192 + 8);
+      expect(r.x).toBeGreaterThanOrEqual(WALL_LEFT - BASE_FLARE);
+      expect(r.x + r.w).toBeLessThanOrEqual(WALL_RIGHT + BASE_FLARE);
     }
   });
 
@@ -89,7 +90,7 @@ describe('terrain', () => {
   it('drawGround fills the ground strip and plants pines', () => {
     const c = new MockCtx();
     drawGround(c as unknown as CanvasRenderingContext2D, 300);
-    const base = c.rects.find((r) => r.w === 256 && r.h === 24);
+    const base = c.rects.find((r) => r.w === LOGICAL_WIDTH && r.h === 24);
     expect(base).toBeTruthy();
     expect(base!.y).toBe(300 - 24);
     // pine sprite pixels are 1x1 and sit above the ground top

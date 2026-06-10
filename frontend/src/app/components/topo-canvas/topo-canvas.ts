@@ -18,8 +18,9 @@ import {
   renderScene,
 } from '../../rendering/wall-renderer';
 
-// Device pixels per logical pixel. Responsive: the largest integer scale
-// that fits the viewport width (integer keeps the pixel art crisp and even).
+// Device pixels per logical pixel. Fit the WHOLE scene to the viewport
+// (both dimensions) at the largest integer scale; integer keeps pixels even.
+// Very tall routes fall back to the minimum scale and scroll.
 const MIN_DISPLAY_SCALE = 2;
 const MAX_DISPLAY_SCALE = 8;
 const VIEWPORT_MARGIN_PX = 16;
@@ -100,14 +101,15 @@ export class TopoCanvas implements OnDestroy {
   private displayScale = MIN_DISPLAY_SCALE;
 
   private resizeCanvasFor(canvas: HTMLCanvasElement, route: Route): void {
-    const available =
-      (canvas.parentElement?.clientWidth ?? LOGICAL_WIDTH * MIN_DISPLAY_SCALE) -
-      VIEWPORT_MARGIN_PX;
-    this.displayScale = Math.min(
-      MAX_DISPLAY_SCALE,
-      Math.max(MIN_DISPLAY_SCALE, Math.floor(available / LOGICAL_WIDTH))
-    );
     const logicalHeight = computeLogicalHeight(route);
+    const viewport = canvas.parentElement;
+    const availW = (viewport?.clientWidth ?? LOGICAL_WIDTH * MIN_DISPLAY_SCALE) - VIEWPORT_MARGIN_PX;
+    const availH = (viewport?.clientHeight ?? logicalHeight * MIN_DISPLAY_SCALE) - VIEWPORT_MARGIN_PX;
+    const fit = Math.min(
+      Math.floor(availW / LOGICAL_WIDTH),
+      Math.floor(availH / logicalHeight)
+    );
+    this.displayScale = Math.min(MAX_DISPLAY_SCALE, Math.max(MIN_DISPLAY_SCALE, fit));
     canvas.width = LOGICAL_WIDTH * this.displayScale;
     canvas.height = logicalHeight * this.displayScale;
     canvas.style.width = `${LOGICAL_WIDTH * this.displayScale}px`;

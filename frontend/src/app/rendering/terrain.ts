@@ -197,7 +197,7 @@ function paintLimestone(
 
   // Tufa drips: wall-level vertical streaks, per-pixel silhouette guard.
   ctx.fillStyle = palette.midtone;
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 8; i++) {
     const x = WALL_LEFT + 12 + i * 22 + (i % 2) * 4;
     const top = wallTop + 6 + (i * 9) % 18;
     const len = 9 + (i * 5) % 8;
@@ -299,9 +299,9 @@ export function drawGround(ctx: CanvasRenderingContext2D, height: number): void 
     }
   }
 
-  // Pine silhouettes flanking the wall (wall base spans x=56..200).
+  // Pine silhouettes flanking the wall (flared wall base spans x=88..296).
   // Sprites are 10 tall; feet sink 2px into the ground.
-  for (const x of [4, 22, 40, 206, 224, 242]) {
+  for (const x of [4, 26, 48, 68, 302, 324, 348, 366]) {
     drawSprite(ctx, PINE, SPRITE_PALETTES.pine, x, y0 - 8);
   }
 }

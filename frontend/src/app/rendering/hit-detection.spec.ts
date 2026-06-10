@@ -108,9 +108,9 @@ describe('hitTest', () => {
       x: (top.bottom.x + top.top.x) / 2,
       y: (top.bottom.y + top.top.y) / 2,
     };
-    expect(hitTest(routeA, 256, hA, 5, 5)).toBeNull();
+    expect(hitTest(routeA, LOGICAL_WIDTH, hA, 5, 5)).toBeNull();
     expect(
-      hitTest(routeB, 256, hB, mid.x, mid.y)
+      hitTest(routeB, LOGICAL_WIDTH, hB, mid.x, mid.y)
     ).toBe(4);
   });
 });
