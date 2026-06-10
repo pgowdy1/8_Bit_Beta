@@ -198,4 +198,12 @@ describe('layout', () => {
     const top = segs[segs.length - 1].top;
     expect(climberPoint(route, FULLY_RENDERED)).toEqual({ x: top.x, y: top.y });
   });
+
+  it('climberPoint clamps out-of-range fractions', () => {
+    const route = makeRoute([100, 100]);
+    expect(climberPoint(route, { pitchIndex: 0, fraction: 2 }))
+      .toEqual(climberPoint(route, { pitchIndex: 0, fraction: 1 }));
+    expect(climberPoint(route, { pitchIndex: 0, fraction: -1 }))
+      .toEqual(climberPoint(route, { pitchIndex: 0, fraction: 0 }));
+  });
 });

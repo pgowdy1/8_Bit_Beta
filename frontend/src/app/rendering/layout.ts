@@ -114,9 +114,10 @@ export function anchorX(anchorIndex: number): number {
 }
 
 // Jagged wall silhouette: horizontal bands with deterministic edge notches.
-// Summit narrows to a peak; the bottom two bands flare wider like a talus
-// apron. Notch depth never exceeds 10px, keeping >= 8px of rock around the
-// anchor zone (anchorX range [102, 154]; nominal edges 64/192).
+// Summit narrows to a peak; the bottom two or three bands flare wider like a
+// talus apron (a partial terminal band always flares). Notch depth never
+// exceeds 10px, keeping >= 8px of rock around the anchor zone (anchorX range
+// [102, 154]; nominal edges 64/192).
 export interface WallBand {
   y0: number;
   y1: number;
@@ -143,6 +144,7 @@ export function wallSilhouette(route: Route): WallBand[] {
       left += 10;
       right -= 14;
     }
+    // Flare unconditionally wins over summit narrowing — keep this block last.
     if (y1 > wallBottom - BAND_HEIGHT * 2) {
       left = WALL_LEFT - BASE_FLARE;
       right = WALL_RIGHT + BASE_FLARE;
