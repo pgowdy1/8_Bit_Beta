@@ -50,11 +50,13 @@ export function drawClouds(ctx: CanvasRenderingContext2D, horizonY: number): voi
   // One cloud roughly every 64px of sky, alternating across three columns.
   const xs = [16, 150, 90];
   let i = 0;
+  // Skies shorter than ~64px get no clouds — intentional for tiny routes.
   for (let y = 14; y < horizonY - 50; y += 64, i++) {
     drawSprite(ctx, CLOUD, SPRITE_PALETTES.cloud, xs[i % xs.length], y);
   }
 }
 
+// NOTE: takes summitY (top of the wall), NOT horizonY like the other draw fns.
 export function drawBirds(ctx: CanvasRenderingContext2D, summitY: number): void {
   drawSprite(ctx, BIRD, SPRITE_PALETTES.bird, 34, summitY - 12);
   drawSprite(ctx, BIRD, SPRITE_PALETTES.bird, 210, summitY - 20);
