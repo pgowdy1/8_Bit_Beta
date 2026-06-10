@@ -5,8 +5,8 @@ import {
 
 class MockCtx {
   fillStyle = '';
-  rects: Array<{ x: number; y: number }> = [];
-  fillRect(x: number, y: number): void { this.rects.push({ x, y }); }
+  rects: Array<{ x: number; y: number; color: string }> = [];
+  fillRect(x: number, y: number): void { this.rects.push({ x, y, color: this.fillStyle }); }
   save(): void {}
   restore(): void {}
   scale(): void {}
@@ -48,8 +48,8 @@ describe('sprites', () => {
     ];
     drawSprite(ctx as unknown as CanvasRenderingContext2D, m, ['#111111', '#222222'], 10, 20);
     expect(ctx.rects).toEqual([
-      { x: 11, y: 20 },
-      { x: 10, y: 21 },
+      { x: 11, y: 20, color: '#111111' },
+      { x: 10, y: 21, color: '#222222' },
     ]);
   });
 
