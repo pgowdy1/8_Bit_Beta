@@ -24,8 +24,9 @@ export function drawRouteLayer(
     else if (partial) f = clamp01(progress.fraction);
     else continue;
 
-    drawRope(ctx, seg, f);
-    drawQuickdraws(ctx, seg, f);
+    const pts = ropePath(seg);
+    drawRope(ctx, pts, f);
+    drawQuickdraws(ctx, seg, pts, f);
 
     if (f >= 1) {
       drawSprite(ctx, ANCHOR_STATION, SPRITE_PALETTES.anchor, seg.top.x - 3, seg.top.y - 2);
@@ -39,8 +40,7 @@ export function drawRouteLayer(
   drawPitchLabels(ctx, segments, progress);
 }
 
-function drawRope(ctx: CanvasRenderingContext2D, seg: PitchSegment, f: number): void {
-  const pts = ropePath(seg);
+function drawRope(ctx: CanvasRenderingContext2D, pts: AnchorPoint[], f: number): void {
   const count = Math.floor(pts.length * f);
   for (let i = 0; i < count; i++) {
     const p = pts[i];
@@ -64,11 +64,15 @@ export function quickdrawIndices(pts: AnchorPoint[], pitchHeightPx: number): num
   );
 }
 
-function drawQuickdraws(ctx: CanvasRenderingContext2D, seg: PitchSegment, f: number): void {
-  const pts = ropePath(seg);
+function drawQuickdraws(
+  ctx: CanvasRenderingContext2D,
+  seg: PitchSegment,
+  pts: AnchorPoint[],
+  f: number
+): void {
   const drawn = Math.floor(pts.length * f);
-  const h = seg.bottom.y - seg.top.y;
-  for (const idx of quickdrawIndices(pts, h)) {
+  const verticalDelta = seg.bottom.y - seg.top.y;
+  for (const idx of quickdrawIndices(pts, verticalDelta)) {
     if (idx >= drawn) continue;
     const p = pts[idx];
     // Carabiner center (row 7 of the sprite) sits on the rope point.
