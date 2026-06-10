@@ -1,25 +1,22 @@
-// 8-Bit Beta - global NES chrome styles
-// Strict NES palette + pixel-perfect rendering.
+// 8-Bit Beta - golden-hour dusk chrome.
+// Token names keep their NES heritage; values are tuned to match the
+// canvas scene (see rendering/nes-palette.ts SKY_BANDS).
 
 @use 'sass:color';
 
-// ============================================================
-// NES palette tokens (subset used across the UI chrome)
-// Full palette lives in rendering/nes-palette.ts for canvas use.
-// ============================================================
-$nes-black:        #000000;
-$nes-white:        #FCFCFC;
-$nes-light-gray:   #BCBCBC;
-$nes-mid-gray:     #7C7C7C;
-$nes-dark-gray:    #3C3C3C;
-$nes-blue:         #0078F8;
-$nes-dark-blue:    #0000BC;
-$nes-light-blue:   #3CBCFC;
-$nes-red:          #F83800;
-$nes-dark-red:     #A81000;
-$nes-yellow:       #FCBC3C;
-$nes-green:        #00B800;
-$nes-sky:          #BCDCFC;
+$nes-black:        #100C20;   // page background: near-black indigo
+$nes-white:        #F8E8C8;   // cream text + borders
+$nes-light-gray:   #C8B49A;   // muted parchment
+$nes-mid-gray:     #7A6A7A;
+$nes-dark-gray:    #2A2244;
+$nes-blue:         #2A2A6A;   // dialog frame (sky top band)
+$nes-dark-blue:    #1A1A3E;   // panels and headers
+$nes-light-blue:   #8AB8E8;
+$nes-red:          #E8804A;   // primary buttons: sunset orange
+$nes-dark-red:     #B85A30;   // button bevel shading
+$nes-yellow:       #FFD080;   // warm gold accents
+$nes-green:        #58D854;
+$nes-sky:          #1A1A3E;   // canvas viewport surround (dark; scene pops)
 
 // ============================================================
 // Reset + base
