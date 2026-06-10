@@ -112,3 +112,59 @@ export function anchorX(anchorIndex: number): number {
   const offsets = [0, span * 0.5, 0, -span * 0.5];
   return Math.round(WALL_CENTER + offsets[phase]);
 }
+
+// Jagged wall silhouette: horizontal bands with deterministic edge notches.
+// Summit narrows to a peak; the bottom two bands flare wider like a talus
+// apron. Notch depth never exceeds 10px, keeping >= 8px of rock around the
+// anchor zone (anchorX range [102, 154]; nominal edges 64/192).
+export interface WallBand {
+  y0: number;
+  y1: number;
+  left: number;
+  right: number;
+}
+
+const BAND_HEIGHT = 12;
+const EDGE_BITES = [0, 4, 8, 2, 6, 10, 3, 7];
+export const BASE_FLARE = 8;
+
+export function wallSilhouette(route: Route): WallBand[] {
+  const height = computeLogicalHeight(route);
+  const wallBottom = height - GROUND_HEIGHT;
+  const wallTop = wallBottom - wallHeight(route) - SUMMIT_HEIGHT;
+  const bands: WallBand[] = [];
+
+  let i = 0;
+  for (let y = wallTop; y < wallBottom; y += BAND_HEIGHT, i++) {
+    const y1 = Math.min(y + BAND_HEIGHT, wallBottom);
+    let left = WALL_LEFT + EDGE_BITES[i % EDGE_BITES.length];
+    let right = WALL_RIGHT - EDGE_BITES[(i + 3) % EDGE_BITES.length];
+    if (i === 0) {
+      left += 10;
+      right -= 14;
+    }
+    if (y1 > wallBottom - BAND_HEIGHT * 2) {
+      left = WALL_LEFT - BASE_FLARE;
+      right = WALL_RIGHT + BASE_FLARE;
+    }
+    bands.push({ y0: y, y1, left, right });
+  }
+  return bands;
+}
+
+// Where the climber hangs: the leading tip of the rope mid-animation, or
+// the final top anchor at rest. Null when the route has no pitches.
+export function climberPoint(route: Route, progress: RenderProgress): AnchorPoint | null {
+  const segments = computeSegments(route);
+  if (segments.length === 0) return null;
+
+  if (progress.pitchIndex >= segments.length) {
+    const top = segments[segments.length - 1].top;
+    return { x: top.x, y: top.y };
+  }
+
+  const seg = segments[Math.max(0, progress.pitchIndex)];
+  const pts = ropePath(seg);
+  const f = Math.min(1, Math.max(0, progress.fraction));
+  return pts[Math.min(pts.length - 1, Math.floor(f * (pts.length - 1)))];
+}

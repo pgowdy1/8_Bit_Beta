@@ -9,10 +9,12 @@ import {
   WALL_LEFT,
   WALL_RIGHT,
   anchorX,
+  climberPoint,
   computeLogicalHeight,
   computeSegments,
   pitchPx,
   ropePath,
+  wallSilhouette,
 } from './layout';
 import { Route } from '../models/route.model';
 
@@ -145,5 +147,54 @@ describe('layout', () => {
   it('FULLY_RENDERED marks every pitch as drawn', () => {
     expect(FULLY_RENDERED.pitchIndex).toBeGreaterThan(1000);
     expect(FULLY_RENDERED.fraction).toBe(1);
+  });
+
+  it('wallSilhouette bands tile the wall region exactly, top to bottom', () => {
+    const route = makeRoute([100, 100, 100]);
+    const bands = wallSilhouette(route);
+    const height = computeLogicalHeight(route);
+    expect(bands[0].y0).toBe(height - GROUND_HEIGHT - 3 * pitchPx(100) - SUMMIT_HEIGHT);
+    expect(bands[bands.length - 1].y1).toBe(height - GROUND_HEIGHT);
+    for (let i = 1; i < bands.length; i++) {
+      expect(bands[i].y0).toBe(bands[i - 1].y1);
+    }
+  });
+
+  it('wallSilhouette keeps every anchor at least 8px inside the rock', () => {
+    const route = makeRoute([100, 100, 100, 100, 100, 100]);
+    const bands = wallSilhouette(route);
+    for (const b of bands) {
+      // anchorX range is [102, 154]
+      expect(b.left).toBeLessThanOrEqual(102 - 8);
+      expect(b.right).toBeGreaterThanOrEqual(154 + 8);
+    }
+  });
+
+  it('wallSilhouette flares wider at the base than the summit', () => {
+    const bands = wallSilhouette(makeRoute([200, 200, 200]));
+    const summit = bands[0];
+    const base = bands[bands.length - 1];
+    expect(base.right - base.left).toBeGreaterThan(summit.right - summit.left);
+  });
+
+  it('climberPoint returns null for an empty route', () => {
+    expect(climberPoint(makeRoute([]), FULLY_RENDERED)).toBeNull();
+  });
+
+  it('climberPoint sits on the rope mid-pitch during animation', () => {
+    const route = makeRoute([100, 100]);
+    const seg = computeSegments(route)[0];
+    const pts = ropePath(seg);
+    const pt = climberPoint(route, { pitchIndex: 0, fraction: 0.5 });
+    expect(pts).toContainEqual(pt);
+    expect(pt!.y).toBeLessThan(seg.bottom.y);
+    expect(pt!.y).toBeGreaterThan(seg.top.y);
+  });
+
+  it('climberPoint rests at the top anchor when fully rendered', () => {
+    const route = makeRoute([100, 100, 100]);
+    const segs = computeSegments(route);
+    const top = segs[segs.length - 1].top;
+    expect(climberPoint(route, FULLY_RENDERED)).toEqual({ x: top.x, y: top.y });
   });
 });
