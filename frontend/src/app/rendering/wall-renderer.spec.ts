@@ -75,4 +75,18 @@ describe('renderScene', () => {
     renderScene(ctxB as unknown as CanvasRenderingContext2D, tallRoute, FULLY_RENDERED);
     expect(ctxB.calls).toBeGreaterThan(ctxA.calls);
   });
+
+  it('renders the same scene deterministically', () => {
+    const a = new MockCtx();
+    const b = new MockCtx();
+    renderScene(a as unknown as CanvasRenderingContext2D, makeRoute(3), FULLY_RENDERED);
+    renderScene(b as unknown as CanvasRenderingContext2D, makeRoute(3), FULLY_RENDERED);
+    expect(a.calls).toBe(b.calls);
+  });
+
+  it('mid-animation renders at least the climber even at fraction 0', () => {
+    const ctx = new MockCtx();
+    renderScene(ctx as unknown as CanvasRenderingContext2D, makeRoute(2), { pitchIndex: 0, fraction: 0 });
+    expect(ctx.calls).toBeGreaterThan(0);
+  });
 });
