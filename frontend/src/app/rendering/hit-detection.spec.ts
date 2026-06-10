@@ -90,6 +90,27 @@ describe('hitTest', () => {
     const px = (mid.x / LOGICAL_WIDTH) * canvasW;
     const py = (mid.y / logicalHeight) * canvasH;
 
+    const chordMidX = (segs[1].bottom.x + segs[1].top.x) / 2;
+    const chordMidY = (segs[1].bottom.y + segs[1].top.y) / 2;
+    expect(Math.hypot(mid.x - chordMidX, mid.y - chordMidY)).toBeGreaterThan(0);
+
     expect(hitTest(route, canvasW, canvasH, px, py)).toBe(1);
+  });
+
+  it('returns fresh results for a modified route object', () => {
+    const routeA = uniformRoute(2);
+    const routeB = uniformRoute(5);
+    const hA = computeLogicalHeight(routeA);
+    const hB = computeLogicalHeight(routeB);
+    const segsB = computeSegments(routeB);
+    const top = segsB[4];
+    const mid = {
+      x: (top.bottom.x + top.top.x) / 2,
+      y: (top.bottom.y + top.top.y) / 2,
+    };
+    expect(hitTest(routeA, 256, hA, 5, 5)).toBeNull();
+    expect(
+      hitTest(routeB, 256, hB, mid.x, mid.y)
+    ).toBe(4);
   });
 });
