@@ -4,6 +4,7 @@ import {
   LOGICAL_WIDTH,
   MIN_PITCH_PX,
   PIXELS_PER_FOOT,
+  ROPE_SAG_MAX,
   SKY_HEIGHT,
   SUMMIT_HEIGHT,
   WALL_LEFT,
@@ -120,7 +121,7 @@ describe('layout', () => {
     expect(ropePath(seg)).toEqual(ropePath(seg));
   });
 
-  it('ropePath bows away from the straight chord but never more than 5px', () => {
+  it('ropePath bows away from the straight chord but never more than ROPE_SAG_MAX + rounding', () => {
     const seg = computeSegments(makeRoute([200]))[0];
     const pts = ropePath(seg);
     let maxDev = 0;
@@ -132,7 +133,7 @@ describe('layout', () => {
       maxDev = Math.max(maxDev, Math.abs(p.x - chordX));
     }
     expect(maxDev).toBeGreaterThan(0);
-    expect(maxDev).toBeLessThanOrEqual(5);
+    expect(maxDev).toBeLessThanOrEqual(ROPE_SAG_MAX + 1);
   });
 
   it('ropePath has no duplicate consecutive points and is dense (>= chord length points)', () => {

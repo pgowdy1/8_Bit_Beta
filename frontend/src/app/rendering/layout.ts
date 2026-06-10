@@ -91,7 +91,7 @@ export function ropePath(seg: PitchSegment): AnchorPoint[] {
   const cx = bottom.x + dx / 2 + perpX * sag;
   const cy = bottom.y + dy / 2 + perpY * sag;
 
-  const steps = Math.ceil(len) * 2;
+  const steps = Math.max(1, Math.ceil(len) * 2);
   const points: AnchorPoint[] = [];
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
