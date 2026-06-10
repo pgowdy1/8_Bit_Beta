@@ -1,4 +1,7 @@
-import { NES, NES_PALETTE, ROCK_PALETTES, SCENE_PALETTES, isValidHex } from './nes-palette';
+import {
+  LABEL_COLORS, NES, NES_PALETTE, RIDGE_COLORS, GROUND_COLORS, ROCK_PALETTES,
+  ROPE_COLORS, SKY_BANDS, SPRITE_PALETTES, STAR_COLOR, SUN_COLORS, isValidHex,
+} from './nes-palette';
 import { ROCK_TYPES } from '../models/route.model';
 
 describe('NES palette', () => {
@@ -23,11 +26,25 @@ describe('NES palette', () => {
     }
   });
 
-  it('exposes 4 colors per scene palette', () => {
-    expect(SCENE_PALETTES.sky.length).toBe(4);
-    expect(SCENE_PALETTES.wall.length).toBe(4);
-    expect(SCENE_PALETTES.ground.length).toBe(4);
-    expect(SCENE_PALETTES.route.length).toBe(4);
+  it('exposes six sky bands, all valid hex', () => {
+    expect(SKY_BANDS.length).toBe(6);
+    for (const c of SKY_BANDS) expect(isValidHex(c)).toBe(true);
+  });
+
+  it('scene constants are valid hex', () => {
+    const all = [
+      RIDGE_COLORS.far, RIDGE_COLORS.near,
+      GROUND_COLORS.base, GROUND_COLORS.highlight,
+      ROPE_COLORS.main, ROPE_COLORS.shade,
+      SUN_COLORS.core, SUN_COLORS.halo,
+      STAR_COLOR, LABEL_COLORS.fill, LABEL_COLORS.outline,
+      ...Object.values(SPRITE_PALETTES).flat(),
+    ];
+    for (const c of all) expect(isValidHex(c)).toBe(true);
+  });
+
+  it('sky bands are all distinct', () => {
+    expect(new Set(SKY_BANDS).size).toBe(6);
   });
 
   it('exposes a 4-slot palette for every rock type', () => {
