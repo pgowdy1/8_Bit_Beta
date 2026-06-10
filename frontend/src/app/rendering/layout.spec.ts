@@ -1,4 +1,5 @@
 import {
+  FULLY_RENDERED,
   GROUND_HEIGHT,
   LOGICAL_WIDTH,
   MIN_PITCH_PX,
@@ -11,6 +12,7 @@ import {
   computeLogicalHeight,
   computeSegments,
   pitchPx,
+  ropePath,
 } from './layout';
 import { Route } from '../models/route.model';
 
@@ -100,5 +102,48 @@ describe('layout', () => {
 
   it('zero-pitch route still has positive height', () => {
     expect(computeLogicalHeight(makeRoute([]))).toBeGreaterThan(0);
+  });
+
+  it('ropePath starts exactly at the bottom anchor and ends exactly at the top anchor', () => {
+    const segs = computeSegments(makeRoute([100, 150]));
+    for (const seg of segs) {
+      const pts = ropePath(seg);
+      expect(pts[0]).toEqual({ x: seg.bottom.x, y: seg.bottom.y });
+      expect(pts[pts.length - 1]).toEqual({ x: seg.top.x, y: seg.top.y });
+    }
+  });
+
+  it('ropePath is deterministic', () => {
+    const seg = computeSegments(makeRoute([120]))[0];
+    expect(ropePath(seg)).toEqual(ropePath(seg));
+  });
+
+  it('ropePath bows away from the straight chord but never more than 5px', () => {
+    const seg = computeSegments(makeRoute([200]))[0];
+    const pts = ropePath(seg);
+    let maxDev = 0;
+    for (const p of pts) {
+      // Chord is vertical-ish; measure horizontal deviation from the
+      // linear interpolation between endpoints at the same y-progress.
+      const t = (seg.bottom.y - p.y) / (seg.bottom.y - seg.top.y);
+      const chordX = seg.bottom.x + (seg.top.x - seg.bottom.x) * t;
+      maxDev = Math.max(maxDev, Math.abs(p.x - chordX));
+    }
+    expect(maxDev).toBeGreaterThan(0);
+    expect(maxDev).toBeLessThanOrEqual(5);
+  });
+
+  it('ropePath has no duplicate consecutive points and is dense (>= chord length points)', () => {
+    const seg = computeSegments(makeRoute([100]))[0];
+    const pts = ropePath(seg);
+    for (let i = 1; i < pts.length; i++) {
+      expect(pts[i].x !== pts[i - 1].x || pts[i].y !== pts[i - 1].y).toBe(true);
+    }
+    expect(pts.length).toBeGreaterThanOrEqual(seg.bottom.y - seg.top.y);
+  });
+
+  it('FULLY_RENDERED marks every pitch as drawn', () => {
+    expect(FULLY_RENDERED.pitchIndex).toBeGreaterThan(1000);
+    expect(FULLY_RENDERED.fraction).toBe(1);
   });
 });

@@ -3,6 +3,7 @@ import { NES, ROCK_PALETTES, RockPalette } from './nes-palette';
 import {
   GROUND_HEIGHT,
   LOGICAL_WIDTH,
+  RenderProgress,
   SUMMIT_HEIGHT,
   WALL_LEFT,
   WALL_RIGHT,
@@ -11,22 +12,15 @@ import {
   wallHeight,
 } from './layout';
 
+export { FULLY_RENDERED } from './layout';
+export type { RenderProgress } from './layout';
+
 // TEMPORARY shim until Task 9 rewrites this file.
 const SCENE_PALETTES = {
   sky: ['#F8A85A', '#A4E4FC', '#FCFCFC', '#3CBCFC'],
   ground: ['#2A2030', '#3A2A40', '#201828', '#7C7C7C'],
   route: ['#000000', '#A81000', '#F83800', '#FFF0A0'],
 } as const;
-
-export interface RenderProgress {
-  // The pitch currently being drawn; lower-index pitches are fully drawn,
-  // higher-index pitches are not drawn at all.
-  pitchIndex: number;
-  // 0..1 fraction of the current pitch that is drawn.
-  fraction: number;
-}
-
-export const FULLY_RENDERED: RenderProgress = { pitchIndex: Number.MAX_SAFE_INTEGER, fraction: 1 };
 
 // Render the entire scene to a logical-pixel canvas. Caller is responsible for
 // sizing the backing store to LOGICAL_WIDTH x computeLogicalHeight(pitchCount)

@@ -62,6 +62,48 @@ export function computeSegments(route: Route): PitchSegment[] {
   return segments;
 }
 
+export interface RenderProgress {
+  // The pitch currently being drawn; lower-index pitches are fully drawn,
+  // higher-index pitches are not drawn at all.
+  pitchIndex: number;
+  // 0..1 fraction of the current pitch that is drawn.
+  fraction: number;
+}
+
+export const FULLY_RENDERED: RenderProgress = { pitchIndex: Number.MAX_SAFE_INTEGER, fraction: 1 };
+
+// Rope sag: each pitch's rope bows slightly off the straight chord like a
+// weighted lead line. Quadratic bezier, sampled densely and rounded to
+// logical pixels. Bow side alternates per pitch.
+export const ROPE_SAG_MAX = 4;
+
+export function ropePath(seg: PitchSegment): AnchorPoint[] {
+  const { bottom, top } = seg;
+  const dx = top.x - bottom.x;
+  const dy = top.y - bottom.y;
+  const len = Math.hypot(dx, dy);
+  if (len === 0) return [{ x: bottom.x, y: bottom.y }];
+
+  const perpX = -dy / len;
+  const perpY = dx / len;
+  const dir = seg.pitchIndex % 2 === 0 ? 1 : -1;
+  const sag = Math.min(ROPE_SAG_MAX, len / 12) * dir;
+  const cx = bottom.x + dx / 2 + perpX * sag;
+  const cy = bottom.y + dy / 2 + perpY * sag;
+
+  const steps = Math.ceil(len) * 2;
+  const points: AnchorPoint[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const mt = 1 - t;
+    const x = Math.round(mt * mt * bottom.x + 2 * mt * t * cx + t * t * top.x);
+    const y = Math.round(mt * mt * bottom.y + 2 * mt * t * cy + t * t * top.y);
+    const prev = points[points.length - 1];
+    if (!prev || prev.x !== x || prev.y !== y) points.push({ x, y });
+  }
+  return points;
+}
+
 // Deterministic horizontal wander for anchors so the route line looks hand-drawn.
 // Pitch 0 starts at the wall center; subsequent anchors offset by a smooth zig-zag.
 export function anchorX(anchorIndex: number): number {
