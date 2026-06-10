@@ -1,5 +1,5 @@
 import { hitTest } from './hit-detection';
-import { computeLogicalHeight, computeSegments, LOGICAL_WIDTH } from './layout';
+import { computeLogicalHeight, computeSegments, LOGICAL_WIDTH, ropePath } from './layout';
 import { Route } from '../models/route.model';
 
 function makeRoute(lengths: number[]): Route {
@@ -72,6 +72,21 @@ describe('hitTest', () => {
       x: (segs[1].bottom.x + segs[1].top.x) / 2,
       y: (segs[1].bottom.y + segs[1].top.y) / 2,
     };
+    const px = (mid.x / LOGICAL_WIDTH) * canvasW;
+    const py = (mid.y / logicalHeight) * canvasH;
+
+    expect(hitTest(route, canvasW, canvasH, px, py)).toBe(1);
+  });
+
+  it('hits a pitch when clicking the sagging rope, off the straight chord', () => {
+    const route = uniformRoute(3);
+    const segs = computeSegments(route);
+    const logicalHeight = computeLogicalHeight(route);
+    const canvasW = LOGICAL_WIDTH * 4;
+    const canvasH = logicalHeight * 4;
+
+    const pts = ropePath(segs[1]);
+    const mid = pts[Math.floor(pts.length / 2)];
     const px = (mid.x / LOGICAL_WIDTH) * canvasW;
     const py = (mid.y / logicalHeight) * canvasH;
 
