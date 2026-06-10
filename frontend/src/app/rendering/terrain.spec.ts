@@ -1,4 +1,5 @@
 import { ROCK_TYPES, RockType, Route } from '../models/route.model';
+import { ROCK_PALETTES } from './nes-palette';
 import { drawGround, drawRidges, drawWall } from './terrain';
 
 class MockCtx {
@@ -54,6 +55,34 @@ describe('terrain', () => {
     for (const r of c.rects) {
       expect(r.x).toBeGreaterThanOrEqual(64 - 8);
       expect(r.x + r.w).toBeLessThanOrEqual(192 + 8);
+    }
+  });
+
+  it('limestone sediment lines stay on a 7px grid across band seams', () => {
+    const c = new MockCtx();
+    drawWall(c as unknown as CanvasRenderingContext2D, makeRoute(3, 'limestone'));
+    const ys = [...new Set(
+      c.rects
+        .filter((r) => r.h === 1 && r.w > 40 && r.color === ROCK_PALETTES.limestone.shadow)
+        .map((r) => r.y),
+    )].sort((a, b) => a - b);
+    expect(ys.length).toBeGreaterThan(5);
+    for (let i = 1; i < ys.length; i++) {
+      expect(ys[i] - ys[i - 1]).toBe(7);
+    }
+  });
+
+  it('sandstone laminations stay on an 8px grid across band seams', () => {
+    const c = new MockCtx();
+    drawWall(c as unknown as CanvasRenderingContext2D, makeRoute(3, 'sandstone'));
+    const ys = [...new Set(
+      c.rects
+        .filter((r) => r.h === 1 && r.w > 40 && r.color === ROCK_PALETTES.sandstone.shadow)
+        .map((r) => r.y),
+    )].sort((a, b) => a - b);
+    expect(ys.length).toBeGreaterThan(5);
+    for (let i = 1; i < ys.length; i++) {
+      expect(ys[i] - ys[i - 1]).toBe(8);
     }
   });
 
