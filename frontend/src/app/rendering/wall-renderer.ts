@@ -1,12 +1,5 @@
 import { Route, RockType } from '../models/route.model';
 import { NES, ROCK_PALETTES, RockPalette } from './nes-palette';
-
-// TEMPORARY shim until Task 9 rewrites this file.
-const SCENE_PALETTES = {
-  sky: ['#F8A85A', '#A4E4FC', '#FCFCFC', '#3CBCFC'],
-  ground: ['#2A2030', '#3A2A40', '#201828', '#7C7C7C'],
-  route: ['#000000', '#A81000', '#F83800', '#FFF0A0'],
-} as const;
 import {
   GROUND_HEIGHT,
   LOGICAL_WIDTH,
@@ -17,6 +10,13 @@ import {
   computeSegments,
   wallHeight,
 } from './layout';
+
+// TEMPORARY shim until Task 9 rewrites this file.
+const SCENE_PALETTES = {
+  sky: ['#F8A85A', '#A4E4FC', '#FCFCFC', '#3CBCFC'],
+  ground: ['#2A2030', '#3A2A40', '#201828', '#7C7C7C'],
+  route: ['#000000', '#A81000', '#F83800', '#FFF0A0'],
+} as const;
 
 export interface RenderProgress {
   // The pitch currently being drawn; lower-index pitches are fully drawn,

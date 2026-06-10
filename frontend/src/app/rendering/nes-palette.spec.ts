@@ -34,7 +34,7 @@ describe('NES palette', () => {
   it('scene constants are valid hex', () => {
     const all = [
       RIDGE_COLORS.far, RIDGE_COLORS.near,
-      GROUND_COLORS.base, GROUND_COLORS.highlight,
+      GROUND_COLORS.base, GROUND_COLORS.highlight, GROUND_COLORS.speckle,
       ROPE_COLORS.main, ROPE_COLORS.shade,
       SUN_COLORS.core, SUN_COLORS.halo,
       STAR_COLOR, LABEL_COLORS.fill, LABEL_COLORS.outline,
