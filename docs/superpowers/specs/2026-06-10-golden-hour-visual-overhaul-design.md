@@ -46,7 +46,7 @@ Rock palettes keep the `RockPalette` shape (`shadow / base / midtone / highlight
 | basalt | `#241A28` | `#4A3A44` | `#6A5258` | `#A87858` |
 | sandstone | `#6A3A2A` | `#B86A40` | `#D88A50` | `#F8B878` |
 
-New exports: `SKY_BANDS`, `RIDGE_COLORS`, `GROUND_COLORS`, `ROPE_COLORS`, `SPRITE_PALETTES` (climber, quickdraw, anchor, cloud, pine, sun, bird). All hexes above are starting points for hand-tuning.
+New exports: `SKY_BANDS`, `RIDGE_COLORS`, `GROUND_COLORS`, `ROPE_COLORS`, `SPRITE_PALETTES` (climber, quickdraw, anchor, cloud, pine, bird; the sun is procedural rects via `SUN_COLORS`). All hexes above are starting points for hand-tuning.
 
 ## Rope, quickdraws, anchors, climber
 

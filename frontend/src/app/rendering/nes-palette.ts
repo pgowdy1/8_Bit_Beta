@@ -1,6 +1,8 @@
-// Strict NES PPU palette - the 54 distinct colors produced by the original
-// 6502-driven NES picture processor (the full $00-$3F register space contains
-// 64 entries but several are duplicate/forbidden blacks). We expose 54 here.
+// NES PPU heritage palette - colors produced by the original 6502-driven
+// NES picture processor (the full $00-$3F register space contains 64 entries
+// but several are duplicate/forbidden blacks). We expose 60 slots here
+// (~54 distinct). Kept for reference; the scene now uses the golden-hour
+// constants below.
 
 export const NES_PALETTE: readonly string[] = Object.freeze([
   '#7C7C7C', '#0000FC', '#0000BC', '#4428BC', '#940084', '#A80020', '#A81000', '#881400',
