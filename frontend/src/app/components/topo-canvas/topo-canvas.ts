@@ -18,7 +18,11 @@ import {
   renderScene,
 } from '../../rendering/wall-renderer';
 
-const DISPLAY_SCALE = 3; // device pixels per logical pixel
+// Device pixels per logical pixel. Responsive: the largest integer scale
+// that fits the viewport width (integer keeps the pixel art crisp and even).
+const MIN_DISPLAY_SCALE = 2;
+const MAX_DISPLAY_SCALE = 8;
+const VIEWPORT_MARGIN_PX = 16;
 const PITCH_ANIMATION_MS = 220;
 
 @Component({
@@ -93,12 +97,21 @@ export class TopoCanvas implements OnDestroy {
     canvas.style.cursor = idx === null ? 'crosshair' : 'pointer';
   }
 
+  private displayScale = MIN_DISPLAY_SCALE;
+
   private resizeCanvasFor(canvas: HTMLCanvasElement, route: Route): void {
+    const available =
+      (canvas.parentElement?.clientWidth ?? LOGICAL_WIDTH * MIN_DISPLAY_SCALE) -
+      VIEWPORT_MARGIN_PX;
+    this.displayScale = Math.min(
+      MAX_DISPLAY_SCALE,
+      Math.max(MIN_DISPLAY_SCALE, Math.floor(available / LOGICAL_WIDTH))
+    );
     const logicalHeight = computeLogicalHeight(route);
-    canvas.width = LOGICAL_WIDTH * DISPLAY_SCALE;
-    canvas.height = logicalHeight * DISPLAY_SCALE;
-    canvas.style.width = `${LOGICAL_WIDTH * DISPLAY_SCALE}px`;
-    canvas.style.height = `${logicalHeight * DISPLAY_SCALE}px`;
+    canvas.width = LOGICAL_WIDTH * this.displayScale;
+    canvas.height = logicalHeight * this.displayScale;
+    canvas.style.width = `${LOGICAL_WIDTH * this.displayScale}px`;
+    canvas.style.height = `${logicalHeight * this.displayScale}px`;
   }
 
   private startAnimation(): void {
@@ -140,7 +153,7 @@ export class TopoCanvas implements OnDestroy {
     if (!ctx) return;
     ctx.imageSmoothingEnabled = false;
     ctx.save();
-    ctx.scale(DISPLAY_SCALE, DISPLAY_SCALE);
+    ctx.scale(this.displayScale, this.displayScale);
     renderScene(ctx, this.store.route(), this.currentProgress);
     ctx.restore();
   }
